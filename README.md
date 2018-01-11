@@ -1,27 +1,69 @@
  
+## 
+```aidl
+go get github.com/ecdiy/gpa 
+```
+
+ 
 ## SQL 操作
 ```$xslt
  
- 一条记录的多列模式
-	UserLogin func(password, username, appId string) []string `select id,username,if(invalid=0,if(md5(CONCAT(username,',',?))=password,0,2),1) state from SysUser where username=? and appId=?`
+ type SqlAction struct {
+ 	SysRoleDel func(roleId int64, roleId2 int64) (int64, error) `delete from SysRole where id=? and creator!=0 and 0=(SELECT count(*) from SysUserRole where roleId=?)`
+ 	AllAppId   func() ([]int, error)                            `select id from App  `
+ 	IntArray2  func(appId int) ([]int, error)                   `select Id,AppEnable from App where Id=?`
+ 	FindRole2  func() (SysRole, error)                          `select id, createAt  from SysRole where id=3` 	
+ }
  
- 一列int 的多行
-	FindNoSupRoleAppId func() []int `select id from App where id not in (select appId from SysRole where creator=0)`
+```
+
+##   GPA Object Save Insert
+```
+type Gpa interface {
+	 Save(model interface{}) (int64, error)
+	 Insert(s string, param ... interface{}) (int64, error)
+	 Exec(s string, param ... interface{}) (int64, error)
+}
+```
+
+## demo
+```aidl
+
+type SysRole struct {
+	Id       int64 `@Id,AutoIncrement`
+	RoleName string
+	Creator  int64
+	Remark   string
+	CreateAt time.Time
+}
+
+
+type SqlAction struct {
+	SysRoleDel func(roleId int64) (int64, error) `delete from SysRole where id=? `
+	FindRole2  func() (SysRole, error)           `select id, createAt  from SysRole where id=3`
+}
+
+
+func Test_Gpa(t *testing.T) {
+	defer func() {
+		seelog.Flush()
+	}()
 	
- 一列string 的多行
-	FindAllDayGetList func(time int64) []string `select sId from Stock where dayGetAt<?`
+	sqlAction := &SqlAction{}
+	
+	orm := GetGpa("mysql", "root:root@tcp(127.0.0.1:3306)/base-sys-user?timeout=30s&charset=utf8&parseTime=true",
+	 sqlAction)
 
-对象查询    ？
-
-对象数组查询 ？？
-
- insert update delete
-	SysRoleDel func(roleId int64, roleId2 int64) int64 `delete from SysRole where id=? and grantId!=0 and 0=(SELECT count(*) from SysUserRole where roleId=?)`
+	sqlAction.SysRoleDel(48)
+	sr := &SysRole{RoleName: "TestXX", Creator: 1, CreateAt: time.Now(), Remark: "test"}
+	orm.Save(sr)
+	fmt.Print(sr.Id)
+	row, _ := sqlAction.SysRoleDel(sr.Id)
+	if row != 1 {
+		t.Error("delete ite fail.")
+	}
+}
 
 ```
 
-##   DAO
-```
-
-Save
-```
+## QQ群: 620063196
