@@ -33,7 +33,7 @@ type SqlAction struct {
 
 func Test_Gpa(t *testing.T) {
 	sqlAction := &SqlAction{}
-	GetGpa("base-sys-user", sqlAction)
+	GetGpa("base-sys-user","", sqlAction)
 	v, e := sqlAction.IntArray2(1)
 	fmt.Println(v, e, len(v))
 	if e != nil || len(v) != 2 {
@@ -41,50 +41,4 @@ func Test_Gpa(t *testing.T) {
 	}
 	ids, e := sqlAction.AllAppId()
 	fmt.Println("AllAppId:", ids)
-}
-
-//func initTest() {
-//	dao = InitGPA(Sql)
-//}
-//func Test_Sql(t *testing.T) {
-//	initTest()
-//
-//	sr := &SysRole{RoleName: "test", AppId: 1, CreateAt: time.Now()}
-//	dao.Save(sr)
-//	fmt.Print(sr)
-//
-//	//v, _ := Sql.FindRole2()
-//	////fmt.Println("~~~~~~~~~~", v)
-//	//v1, e1 := Sql.FindRole1()
-//	//fmt.Println("~~~~~v1~~~~~", e1, v1)
-//	//vm, _ := Sql.FindRoleMap()
-//	//fmt.Println("~~~~~vm~~~~~", vm)
-//	//vma, _ := Sql.FindRoleMapArray()
-//	//fmt.Println("~~~~~vma~~~~~", vma)
-//	//Sql.SysRoleDel(3, 3)
-//	//fmt.Println(Sql.FindNoSupRoleAppId())
-//	//fmt.Println(Sql.IntArray2())
-//}
-
-type Animal interface {
-	Speak() string
-}
-
-type Cat struct{}
-
-func (c Cat) Speak() string {
-	return "cat"
-}
-
-type Dog struct{}
-
-func (d *Dog) Speak() string {
-	return "dog"
-}
-
-func Test_BSql(t *testing.T) {
-	animals := []Animal{Cat{}, &Dog{}}
-	for _, animal := range animals {
-		fmt.Println(animal.Speak())
-	}
 }
