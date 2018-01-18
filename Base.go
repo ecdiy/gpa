@@ -1,7 +1,6 @@
 package gpa
 
 import (
-	"strings"
 	"reflect"
 	"database/sql"
 )
@@ -30,29 +29,4 @@ func vti(in []reflect.Value) []interface{} {
 		p[idx] = pin.Interface()
 	}
 	return p
-}
-
-func FmtGroupConcatArray(list []map[string]interface{}, colName string) []map[string]interface{} {
-	for _, v := range list {
-		sub, b := v[colName].(string)
-		if b {
-			subs := strings.Split(sub, ",")
-			subA := make([][]string, len(subs))
-			for i, sb := range subs {
-				subA[i] = strings.Split(sb, "#")
-			}
-			v[colName] = subA
-		}
-	}
-	return list
-}
-
-func FmtGroupConcat(list []map[string]interface{}, colName string) []map[string]interface{} {
-	for _, v := range list {
-		sub, b := v[colName].(string)
-		if b {
-			v[colName] = strings.Split(sub, ",")
-		}
-	}
-	return list
 }
