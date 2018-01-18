@@ -30,6 +30,3 @@ func ( *Impl) QueryStringBool(rows *sql.Rows, cols []string) (string, bool, erro
 	}
 	return "", false, nil
 }
-
-//---------------------------
-
