@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func (impl *Impl) QueryMapStringInterfaceBool(rows sql.Rows, cols []string) (map[string]interface{}, bool, error) {
+func ( *Impl) QueryMapStringInterfaceBool(rows sql.Rows, cols []string) (map[string]interface{}, bool, error) {
 	if rows.Next() {
 		arr := make([]interface{}, len(cols))
 		for i := 0; i < len(cols); i++ {
@@ -22,7 +22,7 @@ func (impl *Impl) QueryMapStringInterfaceBool(rows sql.Rows, cols []string) (map
 	return nil, false, nil
 }
 
-func (impl *Impl) QueryMapStringStringBool(rows sql.Rows, cols []string) (map[string]string, bool, error) {
+func ( *Impl) QueryMapStringStringBool(rows sql.Rows, cols []string) (map[string]string, bool, error) {
 	if rows.Next() {
 		arr := make([]interface{}, len(cols))
 		for i := 0; i < len(cols); i++ {

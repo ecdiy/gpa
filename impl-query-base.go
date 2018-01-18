@@ -4,7 +4,7 @@ import (
 	"database/sql"
 )
 
-func (impl *Impl) QueryInt64Bool(rows *sql.Rows, cols []string) (int64, bool, error) {
+func ( *Impl) QueryInt64Bool(rows *sql.Rows, cols []string) (int64, bool, error) {
 	if rows.Next() {
 		var r int64
 		rows.Scan(&r)
@@ -13,7 +13,7 @@ func (impl *Impl) QueryInt64Bool(rows *sql.Rows, cols []string) (int64, bool, er
 	return 0, false, nil
 }
 
-func (impl *Impl) QueryIntBool(rows *sql.Rows, cols []string) (int, bool, error) {
+func ( *Impl) QueryIntBool(rows *sql.Rows, cols []string) (int, bool, error) {
 	if rows.Next() {
 		var r int
 		rows.Scan(&r)
@@ -22,7 +22,7 @@ func (impl *Impl) QueryIntBool(rows *sql.Rows, cols []string) (int, bool, error)
 	return 0, false, nil
 }
 
-func (impl *Impl) QueryStringBool(rows *sql.Rows, cols []string) (string, bool, error) {
+func ( *Impl) QueryStringBool(rows *sql.Rows, cols []string) (string, bool, error) {
 	if rows.Next() {
 		var r string
 		rows.Scan(&r)

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 )
 
-func (dao *Impl) QueryArrayInt(rows *sql.Rows, cols []string) ([]int, error) {
+func ( *Impl) QueryArrayInt(rows *sql.Rows, cols []string) ([]int, error) {
 	colLen := len(cols)
 	if colLen == 1 {
 		var list []int
@@ -27,7 +27,7 @@ func (dao *Impl) QueryArrayInt(rows *sql.Rows, cols []string) ([]int, error) {
 	return []int{}, nil
 }
 
-func (impl *Impl) QueryArrayString(rows *sql.Rows, cols []string) ([]string, error) {
+func ( *Impl) QueryArrayString(rows *sql.Rows, cols []string) ([]string, error) {
 	colLen := len(cols)
 	if colLen == 1 {
 		var list []string

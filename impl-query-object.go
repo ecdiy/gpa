@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (dao *Impl) QueryObjectBool(rows *sql.Rows, cols []string, resultType reflect.Type) []reflect.Value {
+func ( *Impl) QueryObjectBool(rows *sql.Rows, cols []string, resultType reflect.Type) []reflect.Value {
 	v := reflect.New(resultType).Elem()
 	numF := resultType.NumField()
 	if rows.Next() {

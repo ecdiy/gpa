@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func (impl *Impl) QueryArrayMapStringInterface(rows *sql.Rows, cols []string) ([]map[string]interface{}, error) {
+func (*Impl) QueryArrayMapStringInterface(rows *sql.Rows, cols []string) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		arr := make([]interface{}, len(cols))
@@ -23,7 +23,7 @@ func (impl *Impl) QueryArrayMapStringInterface(rows *sql.Rows, cols []string) ([
 	return result, nil
 }
 
-func (impl *Impl) QueryArrayMapStringString(rows *sql.Rows, cols []string) ([]map[string]string, error) {
+func (*Impl) QueryArrayMapStringString(rows *sql.Rows, cols []string) ([]map[string]string, error) {
 	result := make([]map[string]string, 0)
 	for rows.Next() {
 		arr := make([]interface{}, len(cols))

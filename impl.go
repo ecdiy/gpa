@@ -70,11 +70,13 @@ func (impl *Impl) setMethodImpl(di interface{}) {
 		}
 		if obj {
 			fv.Set(reflect.MakeFunc(fv.Type(), func(in []reflect.Value) ([]reflect.Value) {
-				rows, err := impl.conn.Query(runSql, vti(in)...)
+				v := vti(in)
+				rows, err := impl.conn.Query(runSql, v...)
 				defer rows.Close()
 				if err != nil {
-					seelog.Error("调用SQL出错了", runSql, err)
-					return []reflect.Value{nilVf, reflect.ValueOf(err)}
+					seelog.Error("调用SQL出错了\n\t", impl.dsn, "\n\t", runSql, vti(in), "\n\t", err)
+					seelog.Flush()
+					return []reflect.Value{nilVf, nilVf}
 				} else {
 					cols, _ := rows.Columns()
 					return impl.QueryObjectBool(rows, cols, ft.Type.Out(0))

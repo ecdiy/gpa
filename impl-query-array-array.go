@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func (impl *Impl) QueryArrayArrayString(rows *sql.Rows, cols []string) ([][]string, error) {
+func ( *Impl) QueryArrayArrayString(rows *sql.Rows, cols []string) ([][]string, error) {
 	var result [][]string
 	colLen := len(cols)
 	for rows.Next() {
