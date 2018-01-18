@@ -1,12 +1,12 @@
  
 ## 
-```aidl
+```
 go get github.com/ecdiy/gpa 
 ```
 
  
 ## SQL 操作
-```$xslt
+```
  
  type SqlAction struct {
  	SysRoleDel func(roleId int64, roleId2 int64) (int64, error) `delete from SysRole where id=? and creator!=0 and 0=(SELECT count(*) from SysUserRole where roleId=?)`
@@ -17,7 +17,7 @@ go get github.com/ecdiy/gpa
  
 ```
 
-##   GPA Object Save Insert
+##  GPA Object Save Insert
 ```
 type Gpa interface {
 	 Save(model interface{}) (int64, error)
@@ -26,8 +26,8 @@ type Gpa interface {
 }
 ```
 
-## demo
-```aidl
+## Demo
+```
 
 type SysRole struct {
 	Id       int64 `@Id,AutoIncrement`
