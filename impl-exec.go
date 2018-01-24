@@ -24,6 +24,8 @@ func (dao *Impl) ExecInt64(runSql string, p []interface{}) (int64, error) {
 	}
 }
 
+
+
 func (dao *Impl) Save(model interface{}) (int64, error) {
 	toe := reflect.TypeOf(model).Elem()
 	voe := reflect.ValueOf(model).Elem()

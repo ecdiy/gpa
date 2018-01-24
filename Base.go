@@ -16,6 +16,9 @@ type Gpa interface {
 	Save(model interface{}) (int64, error)
 	Insert(s string, param ... interface{}) (int64, error)
 	Exec(s string, param ... interface{}) (int64, error)
+
+	Get(key string) (string, bool, error)
+	Set(key string, val interface{}) (int64, error)
 }
 
 type Impl struct {
