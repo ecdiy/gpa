@@ -10,7 +10,7 @@ func (dao *Impl) Get(key string) (string, bool, error) {
 func (dao *Impl) Set(k string, v interface{}) (int64, error) {
 	v, b, _ := dao.Get(k)
 	if b {
-		return dao.Exec(`update V  from KeyVal set V=? where K=?`, v, k)
+		return dao.Exec(`update KeyVal set V=? where K=?`, v, k)
 	} else {
 		return dao.Exec("insert into KeyVal(K,V) values(?,?)", k, v)
 	}
