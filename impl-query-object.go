@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"reflect"
 	"strings"
+	"github.com/cihub/seelog"
 )
 
-func ( *Impl) QueryObjectBool(rows *sql.Rows, cols []string, resultType reflect.Type) []reflect.Value {
+func (*Impl) QueryObjectBool(rows *sql.Rows, cols []string, resultType reflect.Type) []reflect.Value {
 	v := reflect.New(resultType).Elem()
 	numF := resultType.NumField()
 	if rows.Next() {
@@ -23,8 +24,10 @@ func ( *Impl) QueryObjectBool(rows *sql.Rows, cols []string, resultType reflect.
 		}
 		err := rows.Scan(oneRow...)
 		if err != nil {
+			seelog.Error("对角转换出错:", err)
 			return []reflect.Value{nilVf, reflect.ValueOf(false), reflect.ValueOf(err)}
 		}
+		return []reflect.Value{v, reflect.ValueOf(true), nilVf}
 	}
-	return []reflect.Value{v, reflect.ValueOf(true), nilVf}
+	return []reflect.Value{v, reflect.ValueOf(false), nilVf}
 }

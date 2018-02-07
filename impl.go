@@ -29,6 +29,28 @@ func GetGpa(dbName, dbUri string, models ... interface{}) Gpa {
 	return GetImpl(dbName, dbUri, models ...)
 }
 
+func getSqlByMethod(ft reflect.StructField) string {
+	name := ft.Name
+	if strings.Index(name, "FindBy") == 0 {
+		ty := ft.Type.String()
+
+		lk := strings.LastIndex(ty, "(")
+		if lk > 0 {
+			ty = ty[lk+1:]
+		}
+		d := strings.Index(ty, ".")
+		x := strings.Index(ty, ",")
+		if d > 0 && x > d {
+			tb := ty[d+1:x ]
+			rep := strings.Replace(name[6:], "And", "=? And ", -1)
+			return "select * from " + tb + " where " + rep + "=?"
+		} else {
+			seelog.Error("错误的命令格式:" + name + "," + ty)
+		}
+	}
+	return ""
+}
+
 func (impl *Impl) setMethodImpl(di interface{}) {
 	toe := reflect.TypeOf(di).Elem()
 	voe := reflect.ValueOf(di).Elem()
@@ -37,8 +59,13 @@ func (impl *Impl) setMethodImpl(di interface{}) {
 		ft := toe.Field(i)
 		runSql := strings.TrimSpace(string(ft.Tag))
 		if len(runSql) < 1 {
-			seelog.Error("方法定义错误")
-			continue
+			runSql = getSqlByMethod(ft)
+			if len(runSql) < 1 {
+				seelog.Error("方法定义错误,没有设置RunSql:", ft.Name, ";", ft.Type.String())
+				continue
+			} else {
+				seelog.Info("gen sql:" + runSql)
+			}
 		}
 		if strings.Index(ft.Type.String(), "(") < 0 {
 			seelog.Error("不是函数" + ft.Name)
