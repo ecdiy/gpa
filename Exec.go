@@ -9,43 +9,23 @@ import (
 /**
 返回影响记录的行数
  */
-func (dao Impl) Exec(runSql string, param ... interface{}) (int64, error) {
-	return dao.ExecInt64(runSql, param)
-}
 
-func (dao *Impl) ExecInt64(runSql string, p []interface{}) (int64, error) {
-	row, er := dao.conn.Exec(runSql, p...)
+func (me *Gpa) Exec(runSql string, p ... interface{}) (int64, error) {
+	row, er := me.conn.Exec(runSql, p...)
 	if er == nil {
 		ra, _ := row.RowsAffected()
 		return ra, nil
 	} else {
-		seelog.Error("SQL执行失败:", runSql, er)
+		seelog.Error("SQL执行失败:\n\tsql=", runSql, "\n\tparam=", p, "\n\terror=", er)
 		return -1, er
-	}
-}
-
-
-
-func (dao *Impl) Save(model interface{}) (int64, error) {
-	toe := reflect.TypeOf(model).Elem()
-	voe := reflect.ValueOf(model).Elem()
-	e, err := dao.exist(toe, voe)
-	if err != nil {
-		return -1, err
-	} else {
-		if e == 1 {
-			return dao.update(toe, voe)
-		} else {
-			return dao.insert(toe, voe)
-		}
 	}
 }
 
 /**
 返回 自增ID
  */
-func (dao Impl) Insert(s string, param ... interface{}) (int64, error) {
-	row, err := dao.conn.Exec(s, param...)
+func (me *Gpa) Insert(s string, param ... interface{}) (int64, error) {
+	row, err := me.conn.Exec(s, param...)
 	if err == nil {
 		return row.LastInsertId()
 	} else {
@@ -53,8 +33,40 @@ func (dao Impl) Insert(s string, param ... interface{}) (int64, error) {
 		return -1, err
 	}
 }
+func (me *Gpa) Save(model interface{}) (int64, error) {
+	toe := reflect.TypeOf(model).Elem()
+	voe := reflect.ValueOf(model).Elem()
+	e, err := me.exist(toe, voe)
+	if err != nil {
+		return -1, err
+	} else {
+		if e == 1 {
+			return me.update(toe, voe)
+		} else {
+			return me.insert(toe, voe)
+		}
+	}
+}
 
-func (dao *Impl) exist(toe reflect.Type, voe reflect.Value) (int64, error) {
+func (me *Gpa) InsertObject(model interface{}) (int64, error) {
+	toe := reflect.TypeOf(model).Elem()
+	voe := reflect.ValueOf(model).Elem()
+	return me.insert(toe, voe)
+}
+
+func (me *Gpa) InsertMap(table string, val map[string]string) (int64, error) {
+	sql, fix := "insert into "+table+"(", ""
+	var va []interface{}
+	for k, v := range val {
+		sql += k + ","
+		fix += "?,"
+		va = append(va, v)
+	}
+	sql = sql[0:len(sql)-1] + ")values(" + fix[0:len(fix)-1] + ")"
+	return me.Insert(sql, va...)
+}
+
+func (me *Gpa) exist(toe reflect.Type, voe reflect.Value) (int64, error) {
 	n := toe.NumField()
 	s := "select 1 from " + toe.Name() + " where "
 	var param []interface{}
@@ -70,9 +82,9 @@ func (dao *Impl) exist(toe reflect.Type, voe reflect.Value) (int64, error) {
 			}
 		}
 	}
-	s = s[0:len(s)-4]
+	s = s[0 : len(s)-4]
 	//fmt.Println(s)
-	rows, err := dao.conn.Query(s, param...)
+	rows, err := me.conn.Query(s, param...)
 	defer rows.Close()
 	if err != nil {
 		seelog.Error("SQL出错", s, ":", err)
@@ -87,7 +99,7 @@ func (dao *Impl) exist(toe reflect.Type, voe reflect.Value) (int64, error) {
 	}
 }
 
-func (dao *Impl) insert(toe reflect.Type, voe reflect.Value) (int64, error) {
+func (me *Gpa) insert(toe reflect.Type, voe reflect.Value) (int64, error) {
 	n := toe.NumField()
 	s := "insert into " + toe.Name() + "("
 	cols := ""
@@ -111,23 +123,22 @@ func (dao *Impl) insert(toe reflect.Type, voe reflect.Value) (int64, error) {
 	}
 
 	s = s[0:len(s)-1] + ")values(" + cols[0:len(cols)-1] + ")"
-	row, err := dao.conn.Exec(s, param...)
+	row, err := me.conn.Exec(s, param...)
 	if err == nil {
-		ria, _ := row.RowsAffected()
-		if ria > 0 {
-			rii, _ := row.LastInsertId()
-			if rii > 0 && len(auto) > 0 {
-				voe.FieldByName(auto).SetInt(rii)
-			}
+		rii, _ := row.LastInsertId()
+		if rii > 0 && len(auto) > 0 {
+			voe.FieldByName(auto).SetInt(rii)
+		} else {
+			rii, _ = row.RowsAffected()
 		}
-		return ria, err
+		return rii, err
 	} else {
 		seelog.Error("insert对象失败,", s, param, err)
 		return -1, err
 	}
 }
 
-func (dao *Impl) update(toe reflect.Type, voe reflect.Value) (int64, error) {
+func (me *Gpa) update(toe reflect.Type, voe reflect.Value) (int64, error) {
 	n := toe.NumField()
 	s := "update " + toe.Name() + " set "
 	pri := ""
@@ -152,7 +163,7 @@ func (dao *Impl) update(toe reflect.Type, voe reflect.Value) (int64, error) {
 	for _, v := range priParam {
 		param = append(param, v)
 	}
-	row, er := dao.conn.Exec(s, param...)
+	row, er := me.conn.Exec(s, param...)
 	if er == nil {
 		raf, _ := row.RowsAffected()
 		return raf, er
