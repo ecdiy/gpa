@@ -7,7 +7,6 @@ import (
 	"github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
 
-	"utils/base"
 )
 
 const (
@@ -39,10 +38,10 @@ func Init(Driver, Dsn string, models ... interface{}) *Gpa {
 	return impl
 }
 
-func InitGpa(dbName string, models ... interface{}) *Gpa {
-	return Init(base.Param(base.KeyDbDriverName),
-		base.Param(base.KeyDbUri)+"/"+dbName+"?timeout=30s&charset=utf8mb4&parseTime=true", models ...)
-}
+//func InitGpa(dbName string, models ... interface{}) *Gpa {
+//	return Init(base.Param(base.KeyDbDriverName),
+//		base.Param(base.KeyDbUri)+"/"+dbName+"?timeout=30s&charset=utf8mb4&parseTime=true", models ...)
+//}
 
 func getSqlByMethod(ft reflect.StructField) string {
 	name := ft.Name
