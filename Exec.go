@@ -21,7 +21,6 @@ func (me *Gpa) Exec(runSql string, p ... interface{}) (int64, error) {
 	}
 }
 
-<<<<<<< HEAD:Exec.go
 /**
 返回 自增ID
  */
@@ -35,9 +34,6 @@ func (me *Gpa) Insert(s string, param ... interface{}) (int64, error) {
 	}
 }
 func (me *Gpa) Save(model interface{}) (int64, error) {
-=======
-func (dao *Impl) Save(model interface{}) (int64, error) {
->>>>>>> 1725ea10056ec782e1137ee9aa5de3af56cb5fbd:impl-exec.go
 	toe := reflect.TypeOf(model).Elem()
 	voe := reflect.ValueOf(model).Elem()
 	e, err := me.exist(toe, voe)
