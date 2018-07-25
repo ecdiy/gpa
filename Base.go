@@ -6,7 +6,6 @@ import (
 	"strings"
 	"github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
-
 )
 
 const (
@@ -26,7 +25,7 @@ func Init(Driver, Dsn string, models ... interface{}) *Gpa {
 	var err error
 	impl.conn, err = sql.Open(impl.driver, impl.dsn)
 	if err != nil {
-		panic("数据库连接错误")
+		panic("数据库连接错误:driver=" + impl.driver + ";" + impl.dsn)
 	} else {
 		impl.conn.SetMaxOpenConns(5)
 		//	dao.conn.SetMaxIdleConns(0)
