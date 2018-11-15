@@ -2,14 +2,19 @@ package gpa
 
 import "github.com/cihub/seelog"
 
-func (g *Gpa) ListMapStringString(sql string, param ... interface{}) ([]map[string]string, error) {
-	rows, err := g.conn.Query(sql, param...)
+func (dao *Gpa) ListMapStringString(sql string, param ...interface{}) ([]map[string]string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			seelog.Error("Query fail.\n\t", sql , param, "\n", err)
+		}
+	}()
+	rows, err := dao.Conn.Query(sql, param...)
 	defer rows.Close()
 	if err == nil {
 		if cols, ec := rows.Columns(); ec == nil {
 			result := make([]map[string]string, 0)
 			for rows.Next() {
-				result = append(result, rowToMap(rows, cols))
+				result = append(result, RowToMap(rows, cols))
 			}
 			return result, nil
 		}
@@ -19,8 +24,13 @@ func (g *Gpa) ListMapStringString(sql string, param ... interface{}) ([]map[stri
 	}
 	return nil, nil
 }
-func (g *Gpa) ListMapStringInterface(sql string, param ... interface{}) ([]map[string]interface{}, error) {
-	rows, err := g.conn.Query(sql, param...)
+func (dao *Gpa) ListMapStringInterface(sql string, param ...interface{}) ([]map[string]interface{}, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			seelog.Error("Query fail.\n\t", sql , param, "\n", err)
+		}
+	}()
+	rows, err := dao.Conn.Query(sql, param...)
 	defer rows.Close()
 	if err == nil {
 		if cols, ec := rows.Columns(); ec == nil {

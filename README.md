@@ -37,12 +37,10 @@ type SysRole struct {
 	CreateAt time.Time
 }
 
-
 type SqlAction struct {
 	SysRoleDel func(roleId int64) (int64, error) `delete from SysRole where id=? `
 	FindRole2  func() (SysRole, error)           `select id, createAt  from SysRole where id=3`
 }
-
 
 func Test_Gpa(t *testing.T) {
 	defer func() {
@@ -66,4 +64,4 @@ func Test_Gpa(t *testing.T) {
 
 ```
 
-## QQ群: 620063196
+#### QQ群: 620063196

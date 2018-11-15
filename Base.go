@@ -1,11 +1,11 @@
 package gpa
 
 import (
-	"reflect"
 	"database/sql"
-	"strings"
 	"github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
+	"reflect"
+	"strings"
 )
 
 const (
@@ -17,30 +17,8 @@ var nilVf = reflect.Zero(reflect.TypeOf((*error)(nil)).Elem())
 
 type Gpa struct {
 	driver, dsn string
-	conn        *sql.DB
+	Conn        *sql.DB
 }
-
-func Init(Driver, Dsn string, models ... interface{}) *Gpa {
-	impl := &Gpa{driver: Driver, dsn: Dsn}
-	var err error
-	impl.conn, err = sql.Open(impl.driver, impl.dsn)
-	if err != nil {
-		panic("数据库连接错误:driver=" + impl.driver + ";" + impl.dsn)
-	} else {
-		impl.conn.SetMaxOpenConns(5)
-		//	dao.conn.SetMaxIdleConns(0)
-		impl.conn.Ping()
-	}
-	for _, d := range models {
-		impl.setMethodImpl(d)
-	}
-	return impl
-}
-
-//func InitGpa(dbName string, models ... interface{}) *Gpa {
-//	return Init(base.Param(base.KeyDbDriverName),
-//		base.Param(base.KeyDbUri)+"/"+dbName+"?timeout=30s&charset=utf8mb4&parseTime=true", models ...)
-//}
 
 func getSqlByMethod(ft reflect.StructField) string {
 	name := ft.Name
@@ -53,7 +31,7 @@ func getSqlByMethod(ft reflect.StructField) string {
 		d := strings.Index(ty, ".")
 		x := strings.Index(ty, ",")
 		if d > 0 && x > d {
-			tb := ty[d+1 : x ]
+			tb := ty[d+1 : x]
 			rep := strings.Replace(name[6:], "And", "=? And ", -1)
 			return "select * from " + tb + " where " + rep + "=?"
 		} else {
@@ -63,10 +41,10 @@ func getSqlByMethod(ft reflect.StructField) string {
 	return ""
 }
 
-func (impl *Gpa) setMethodImpl(di interface{}) {
+func (dao *Gpa) setMethodImpl(di interface{}) {
 	toe := reflect.TypeOf(di).Elem()
 	voe := reflect.ValueOf(di).Elem()
-	implVO := reflect.ValueOf(&impl).Elem()
+	implVO := reflect.ValueOf(&dao).Elem()
 	for i := 0; i < voe.NumField(); i++ {
 		ft := toe.Field(i)
 		runSql := strings.TrimSpace(string(ft.Tag))
@@ -115,7 +93,7 @@ func (impl *Gpa) setMethodImpl(di interface{}) {
 				if strings.Index(runSql, "select * ") == 0 {
 					runSql = fmtSelectAllSql(runSql, ft.Type.Out(0))
 				}
-				fv.Set(reflect.MakeFunc(fv.Type(), func(in []reflect.Value) ([]reflect.Value) {
+				fv.Set(reflect.MakeFunc(fv.Type(), func(in []reflect.Value) []reflect.Value {
 					defer func() {
 						if err := recover(); err != nil {
 							seelog.Error("query object fail.methodName=", methodName,
@@ -125,13 +103,13 @@ func (impl *Gpa) setMethodImpl(di interface{}) {
 						}
 					}()
 					v := vti(in)
-					return impl.QueryObject(runSql, ft.Type.Out(0), v...)
+					return dao.QueryObject(runSql, ft.Type.Out(0), v...)
 				}))
 			} else {
 				if strings.Index(runSql, "select * ") == 0 {
 					runSql = fmtSelectAllSql(runSql, ft.Type.Out(0).Elem())
 				}
-				fv.Set(reflect.MakeFunc(fv.Type(), func(in []reflect.Value) ([]reflect.Value) {
+				fv.Set(reflect.MakeFunc(fv.Type(), func(in []reflect.Value) []reflect.Value {
 					defer func() {
 						if err := recover(); err != nil {
 							seelog.Error("query object fail.methodName=", methodName,
@@ -141,14 +119,14 @@ func (impl *Gpa) setMethodImpl(di interface{}) {
 						}
 					}()
 					v := vti(in)
-					return impl.QueryObjectArray(runSql, ft.Type.Out(0), v...)
+					return dao.QueryObjectArray(runSql, ft.Type.Out(0), v...)
 				}))
 			}
 		} else {
 			lowSql := strings.ToLower(runSql)[0:6]
 			if lowSql == "insert" {
 				methodName = "Insert"
-			} else if lowSql == "update" || lowSql == "delete" {
+			} else if lowSql == "update" || lowSql == "delete" || lowSql == "replac" {
 				methodName = "Exec"
 			} else {
 				methodName = "Query" + methodName
@@ -157,11 +135,11 @@ func (impl *Gpa) setMethodImpl(di interface{}) {
 			}
 			implM, b := implVO.Type().MethodByName(methodName)
 			if b {
-				fv.Set(reflect.MakeFunc(fv.Type(), func(in []reflect.Value) ([]reflect.Value) {
+				fv.Set(reflect.MakeFunc(fv.Type(), func(in []reflect.Value) []reflect.Value {
 					params := make([]reflect.Value, len(in)+1)
 					defer func() {
 						if err := recover(); err != nil {
-							seelog.Error(impl.conn == nil, ";", impl.dsn, ";\n\tmethodName=", methodName,
+							seelog.Error(dao.Conn == nil, ";", dao.dsn, ";\n\tmethodName=", methodName,
 								";runSql=", runSql, ",", vti(in),
 								"\n\t", err)
 							seelog.Flush()
@@ -180,59 +158,4 @@ func (impl *Gpa) setMethodImpl(di interface{}) {
 			}
 		}
 	}
-}
-
-func fmtSelectAllSql(runSql string, objCls reflect.Type) string {
-	//seelog.Info("query object runSql=", objCls.Name(), runSql)
-	n := objCls.NumField()
-	fields := ""
-	for i := 0; i < n; i++ {
-		fields += objCls.Field(i).Name + ","
-	}
-	return "select " + fields[0:len(fields)-1] + runSql[8:]
-}
-
-func scan(rows *sql.Rows, cols []string) ([]interface{}, error) {
-	arr := make([]interface{}, len(cols))
-	for i := 0; i < len(cols); i++ {
-		var inf sql.NullString
-		arr[i] = &inf
-	}
-	return arr, rows.Scan(arr...)
-}
-
-func rowToInterface(rows *sql.Rows, cols []string) (map[string]interface{}) {
-	arr, _ := scan(rows, cols)
-	res := make(map[string]interface{})
-	for i := 0; i < len(cols); i++ {
-		v := arr[i].(*sql.NullString)
-		if v.Valid {
-			res[cols[i]] = arr[i].(*sql.NullString).String
-		} else {
-			res[cols[i]] = ""
-		}
-	}
-	return res
-}
-
-func rowToMap(rows *sql.Rows, cols []string) (map[string]string) {
-	arr, _ := scan(rows, cols)
-	res := make(map[string]string)
-	for i := 0; i < len(cols); i++ {
-		v := arr[i].(*sql.NullString)
-		if v.Valid {
-			res[cols[i]] = arr[i].(*sql.NullString).String
-		} else {
-			res[cols[i]] = ""
-		}
-	}
-	return res
-}
-
-func vti(in []reflect.Value) []interface{} {
-	p := make([]interface{}, len(in))
-	for idx, pin := range in {
-		p[idx] = pin.Interface()
-	}
-	return p
 }

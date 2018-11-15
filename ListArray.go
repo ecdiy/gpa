@@ -5,8 +5,13 @@ import (
 	"github.com/cihub/seelog"
 )
 
-func (me *Gpa) ListArrayString(sqlString string, param ... interface{}) ([][]string, error) {
-	rows, err := me.conn.Query(sqlString, param...)
+func (dao *Gpa) ListArrayString(sqlString string, param ...interface{}) ([][]string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			seelog.Error("Query fail.\n\t", sqlString , param, "\n", err)
+		}
+	}()
+	rows, err := dao.Conn.Query(sqlString, param...)
 	defer rows.Close()
 	if err == nil {
 		if cols, ec := rows.Columns(); ec == nil {
@@ -17,20 +22,20 @@ func (me *Gpa) ListArrayString(sqlString string, param ... interface{}) ([][]str
 			return result, nil
 		}
 	} else {
-		seelog.Error("数据库查询出错:", me.dsn, err)
+		seelog.Error("数据库查询出错:", dao.dsn, err)
 		return nil, err
 	}
 	return nil, nil
 }
-func rowToStringArray(rows *sql.Rows, cols []string) ([]string) {
+func rowToStringArray(rows *sql.Rows, cols []string) []string {
 	arr, _ := scan(rows, cols)
 	res := make([]string, len(cols))
 	for i := 0; i < len(cols); i++ {
 		v := arr[i].(*sql.NullString)
 		if v.Valid {
-			res[ i ] = arr[i].(*sql.NullString).String
+			res[i] = arr[i].(*sql.NullString).String
 		} else {
-			res[ i] = ""
+			res[i] = ""
 		}
 	}
 	return res
